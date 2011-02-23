@@ -67,10 +67,15 @@ class SubtitleDownload:
             search.append({'sublanguageid': 'eng', 
                            'moviehash': movie['hash'], 
                            'moviebytesize': movie['size']})
-        
+
+        # fixes weird problem where subs aren't found when only searching
+        # for one movie.
+        if len(search) == 1:
+            search.append(search[0])
+
         resp = self.server.SearchSubtitles(self.login_token, search)
         self.check_status(resp)
-                
+
         if resp['data'] == False:
             print("No subtitles found")
             return
