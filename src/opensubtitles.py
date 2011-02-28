@@ -18,9 +18,9 @@ class SubtitleDownload:
     moviefiles = []
     
     def __init__(self, movie_path):
-        print("OpenSubtitles Subtitle Downloader".center(80))
-        print("===================================".center(80))
-        self.server = ServerProxy(self.api_url)
+        print("OpenSubtitles Subtitle Downloader".center(78))
+        print("===================================".center(78))
+        self.server = ServerProxy(self.api_url, verbose=False)
 
         # Traverse the directory tree and select all movie files
         for root, _, files in os.walk(movie_path):
@@ -66,7 +66,7 @@ class SubtitleDownload:
         for movie in self.moviefiles:
             search.append({'sublanguageid': 'eng', 
                            'moviehash': movie['hash'], 
-                           'moviebytesize': movie['size']})
+                           'moviebytesize': str(movie['size'])})
 
         # fixes weird problem where subs aren't found when only searching
         # for one movie.
