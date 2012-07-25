@@ -19,10 +19,11 @@ class SubtitleDownload:
     movie_exts = (".avi", ".mkv", ".mp4")
     subb_exts = (".srt", ".sub", ".mpl")
 
-    def __init__(self, movie_path):
+    def __init__(self, movie_path, lang = "en"):
         print("OpenSubtitles Subtitle Downloader".center(78))
         print("===================================".center(78))
         self.server = ServerProxy(self.api_url, verbose=False)
+        self.lang_id = lang
 
         # Traverse the directory tree and select all movie files
         for root, _, files in os.walk(movie_path):
@@ -68,7 +69,7 @@ class SubtitleDownload:
         '''Search OpenSubtitles for matching subtitles'''
         search = []
         for movie in self.moviefiles:
-            search.append({'sublanguageid': 'eng', 
+            search.append({'sublanguageid': self.lang_id,
                            'moviehash': movie['hash'], 
                            'moviebytesize': str(movie['size'])})
 
@@ -175,5 +176,7 @@ if __name__ == '__main__':
     cwd = os.getcwd()
     if len(sys.argv) > 1:
         cwd = sys.argv[1]
+    # in order to download non english subtitles add second argument
+    # second language argument such as 'fre' or 'pol'
     downloader = SubtitleDownload(cwd)
 
