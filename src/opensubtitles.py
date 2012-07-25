@@ -17,7 +17,8 @@ class SubtitleDownload:
     server = None
     moviefiles = []
     movie_exts = (".avi", ".mkv", ".mp4")
-    
+    subb_exts = (".srt", ".sub", ".mpl")
+
     def __init__(self, movie_path):
         print("OpenSubtitles Subtitle Downloader".center(78))
         print("===================================".center(78))
@@ -27,14 +28,16 @@ class SubtitleDownload:
         for root, _, files in os.walk(movie_path):
             for file in files:
                 if self.is_movie(file):
-                    print("Found: " + file)
-                    filehash = self.hashFile(os.path.join(root, file))
-                    filesize = os.path.getsize(os.path.join(root, file))
-                    self.moviefiles.append({'dir': root, 
-                                            'file': file, 
-                                            'hash': filehash, 
-                                            'size': filesize,
-                                            'subtitleid': None})
+                    file_path = os.path.join(root, file)
+                    if not self.subtitles_already_present(file_path):
+                        print("Found: " + file)
+                        filehash = self.hashFile(file_path)
+                        filesize = os.path.getsize(file_path)
+                        self.moviefiles.append({'dir': root,
+                                                'file': file,
+                                                'hash': filehash,
+                                                'size': filesize,
+                                                'subtitleid': None})
 
         try:
             print("Login...")
@@ -113,6 +116,13 @@ class SubtitleDownload:
 
     def is_movie(self, file):
         return os.path.splitext(file.lower())[1] in self.movie_exts
+
+    def subtitles_already_present(self, file):
+        file_base = os.path.splitext(file.lower())[0]
+        for ext in self.subb_exts:
+            if os.path.exists(file_base + ext):
+                return True
+        return False
 
     def check_status(self, resp):
         '''Check the return status of the request.
