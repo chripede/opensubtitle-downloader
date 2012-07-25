@@ -16,6 +16,7 @@ class SubtitleDownload:
     login_token = None
     server = None
     moviefiles = []
+    movie_exts = (".avi", ".mkv", ".mp4")
     
     def __init__(self, movie_path):
         print("OpenSubtitles Subtitle Downloader".center(78))
@@ -25,7 +26,7 @@ class SubtitleDownload:
         # Traverse the directory tree and select all movie files
         for root, _, files in os.walk(movie_path):
             for file in files:
-                if file.lower().endswith(".avi") or file.lower().endswith(".mkv"):
+                if self.is_movie(file):
                     print("Found: " + file)
                     filehash = self.hashFile(os.path.join(root, file))
                     filesize = os.path.getsize(os.path.join(root, file))
@@ -109,7 +110,10 @@ class SubtitleDownload:
         decoded = base64.standard_b64decode(resp['data'][0]['data'].encode('ascii'))
         decompressed = zlib.decompress(decoded, 15 + 32)
         return decompressed
-    
+
+    def is_movie(self, file):
+        return os.path.splitext(file.lower())[1] in self.movie_exts
+
     def check_status(self, resp):
         '''Check the return status of the request.
         
