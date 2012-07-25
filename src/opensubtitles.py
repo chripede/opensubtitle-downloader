@@ -157,8 +157,9 @@ class SubtitleDownload:
 
 
 if __name__ == '__main__':
-    if len(sys.argv) <= 1:
-        print("Usage: opensubtitles.py [directory]")
-        exit(1)
-    downloader = SubtitleDownload(sys.argv[1])
-    
+    import os
+    cwd = os.getcwd()
+    if len(sys.argv) > 1:
+        cwd = sys.argv[1]
+    downloader = SubtitleDownload(cwd)
+
