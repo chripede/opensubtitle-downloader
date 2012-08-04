@@ -16,24 +16,29 @@ class SubtitleDownload:
     login_token = None
     server = None
     moviefiles = []
-    
-    def __init__(self, movie_path):
+    movie_exts = (".avi", ".mkv", ".mp4")
+    subb_exts = (".srt", ".sub", ".mpl")
+
+    def __init__(self, movie_path, lang = "en"):
         print("OpenSubtitles Subtitle Downloader".center(78))
         print("===================================".center(78))
         self.server = ServerProxy(self.api_url, verbose=False)
+        self.lang_id = lang
 
         # Traverse the directory tree and select all movie files
         for root, _, files in os.walk(movie_path):
             for file in files:
-                if file.lower().endswith(".avi") or file.lower().endswith(".mkv"):
-                    print("Found: " + file)
-                    filehash = self.hashFile(os.path.join(root, file))
-                    filesize = os.path.getsize(os.path.join(root, file))
-                    self.moviefiles.append({'dir': root, 
-                                            'file': file, 
-                                            'hash': filehash, 
-                                            'size': filesize,
-                                            'subtitleid': None})
+                if self.is_movie(file):
+                    file_path = os.path.join(root, file)
+                    if not self.subtitles_already_present(file_path):
+                        print("Found: " + file)
+                        filehash = self.hashFile(file_path)
+                        filesize = os.path.getsize(file_path)
+                        self.moviefiles.append({'dir': root,
+                                                'file': file,
+                                                'hash': filehash,
+                                                'size': filesize,
+                                                'subtitleid': None})
 
         try:
             print("Login...")
@@ -64,7 +69,7 @@ class SubtitleDownload:
         '''Search OpenSubtitles for matching subtitles'''
         search = []
         for movie in self.moviefiles:
-            search.append({'sublanguageid': 'eng', 
+            search.append({'sublanguageid': self.lang_id,
                            'moviehash': movie['hash'], 
                            'moviebytesize': str(movie['size'])})
 
@@ -109,7 +114,17 @@ class SubtitleDownload:
         decoded = base64.standard_b64decode(resp['data'][0]['data'].encode('ascii'))
         decompressed = zlib.decompress(decoded, 15 + 32)
         return decompressed
-    
+
+    def is_movie(self, file):
+        return os.path.splitext(file.lower())[1] in self.movie_exts
+
+    def subtitles_already_present(self, file):
+        file_base = os.path.splitext(file.lower())[0]
+        for ext in self.subb_exts:
+            if os.path.exists(file_base + ext):
+                return True
+        return False
+
     def check_status(self, resp):
         '''Check the return status of the request.
         
@@ -157,8 +172,11 @@ class SubtitleDownload:
 
 
 if __name__ == '__main__':
-    if len(sys.argv) <= 1:
-        print("Usage: opensubtitles.py [directory]")
-        exit(1)
-    downloader = SubtitleDownload(sys.argv[1])
-    
+    import os
+    cwd = os.getcwd()
+    if len(sys.argv) > 1:
+        cwd = sys.argv[1]
+    # in order to download non english subtitles add second argument
+    # second language argument such as 'fre' or 'pol'
+    downloader = SubtitleDownload(cwd)
+
